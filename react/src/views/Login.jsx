@@ -17,13 +17,21 @@ export default function Login() {
         }
         axiosClient.post('/login', payload)
             .then(({ data }) => {
+                setErrors(null)
                 setToken(data.token)
                 setUser(data.user)
             })
             .catch(err => {
                 const response = err.response
                 if (response && response.status === 422) {
-                    setErrors(response.data.errors)
+                    if (response.data.errors) {
+                        setErrors(response.data.errors)
+                    } else {
+                        setErrors({
+                            email: [response.data.message]
+                        })
+                    }
+
                 }
             })
     }
