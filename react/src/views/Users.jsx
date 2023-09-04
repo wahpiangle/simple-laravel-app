@@ -1,20 +1,35 @@
-import { useQuery } from "react-query"
+import { useQueryClient, useMutation, useQuery } from "react-query"
 import axiosClient from "../axios-client"
 import Loader from "../components/Loader"
 import { Link } from "react-router-dom"
+import toast from "react-hot-toast"
 
 export default function Users() {
-    const getUsers = async() =>{
+    const queryClient = useQueryClient()
+    const getUsers = async () => {
         return await axiosClient.get('/users')
             .catch(() => {
-                console.log('error')
+                toast.error('Error loading users')
             })
     }
-    const { isLoading, error, data } = useQuery('userData', getUsers);
 
+    const deleteUser = useMutation((async (id) => {
+        await axiosClient.delete(`/users/${id}`)
+            .then(() => {
+                toast.success('User deleted')
+            })
+            .catch(() => {
+                toast.error('Error deleting user')
+            })
+            .finally(()=>{
+                queryClient.invalidateQueries('userData')
+            })
+    }))
+    const { isLoading, error, data, isFetching } = useQuery('userData', getUsers);
     if (isLoading) return <Loader />
 
     if (error) return <div>Error</div>
+
     return (
         <div>
             <div className="flex justify-between items-center">
@@ -32,6 +47,12 @@ export default function Users() {
                             <th>Actions</th>
                         </tr>
                     </thead>
+                    { isFetching ? <tbody>
+                        <tr>
+                            <td colSpan="5" className="text-center">Loading...</td>
+                        </tr>
+                    </tbody>
+                    :
                     <tbody>
                         {data.data.data.map(user => (
                             <tr key={user.id}>
@@ -41,11 +62,11 @@ export default function Users() {
                                 <td>{user.created_at}</td>
                                 <td className="flex gap-1">
                                     <Link to={`/users/${user.id}`} className="btn-edit">Edit</Link>
-                                    <button className="btn-delete">Delete</button>
+                                    <button onClick={() => deleteUser.mutate(user.id)} className="btn-delete">Delete</button>
                                 </td>
                             </tr>
                         ))}
-                    </tbody>
+                    </tbody>}
                 </table>
             </div>
         </div>

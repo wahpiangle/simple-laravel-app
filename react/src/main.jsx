@@ -8,6 +8,7 @@ import {
     QueryClient,
     QueryClientProvider,
 } from 'react-query'
+import { Toaster } from 'react-hot-toast'
 
 const queryClient = new QueryClient()
 
@@ -16,6 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <ContextProvider>
             <QueryClientProvider client={queryClient}>
                 <RouterProvider router={router} />
+                <Toaster />
             </QueryClientProvider>
         </ContextProvider>
     </React.StrictMode>,
